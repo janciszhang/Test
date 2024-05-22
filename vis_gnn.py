@@ -15,6 +15,7 @@ G.add_edge('D', 'A')
 
 pos = nx.spring_layout(G)  # 使用Spring布局算法定义节点位置
 nx.draw(G, pos, with_labels=True, node_size=500, font_size=10, node_color='lightblue', font_color='black')
+plt.title("GNN Small Sample")
 plt.show()
 
 """
@@ -58,6 +59,7 @@ nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=10, font_color='bl
 
 # 显示图
 plt.axis('off')
+plt.title("GNN Sample with Attributes")
 plt.show()
 
 
@@ -93,6 +95,7 @@ nx.draw(G, pos, node_color=node_colors, cmap=plt.cm.Reds, with_labels=True, node
 # 添加颜色条以显示节点属性值与颜色之间的映射关系
 plt.colorbar(img, ax=plt.gca(), orientation='vertical', label='Node Degree')
 
+plt.title("GNN Sample in Different Color")
 plt.show()
 
 """
@@ -104,6 +107,7 @@ import torch_geometric
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Data
 import matplotlib.pyplot as plt
+import numpy as np
 
 # 创建一个简单的图数据
 edges = torch.tensor([[0, 1, 1, 2, 2, 3, 3, 4],
@@ -111,7 +115,6 @@ edges = torch.tensor([[0, 1, 1, 2, 2, 3, 3, 4],
 x = torch.randn(5, 16)  # 随机节点特征
 
 data = Data(x=x, edge_index=edges)
-
 
 # 创建一个简单的GNN模型
 class SimpleGNN(torch.nn.Module):
@@ -126,18 +129,38 @@ class SimpleGNN(torch.nn.Module):
         x = self.conv2(x, edge_index)
         return x
 
-
 gnn_model = SimpleGNN()
 
 # 获取中间表示
 intermediate_output = gnn_model(data)
 
-# 将中间表示可视化
-plt.figure(figsize=(8, 6))
-plt.imshow(intermediate_output.detach().numpy(), cmap='viridis', aspect='auto')
-plt.title("Intermediate Representation")
-plt.colorbar()
+# 提取节点位置（这里只是一个示例，你可以根据需要计算节点的位置）
+pos = np.random.rand(5, 2)  # 随机位置
+
+# 提取节点颜色
+node_colors = intermediate_output.detach().numpy().sum(axis=1)
+
+# 创建图和热图的子图
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+# 绘制图（节点和边）
+for i, j in edges.t().numpy():
+    ax1.plot([pos[i, 0], pos[j, 0]], [pos[i, 1], pos[j, 1]], 'k-', alpha=0.5)
+
+# 绘制节点
+sc = ax1.scatter(pos[:, 0], pos[:, 1], c=node_colors, cmap='viridis', s=300)
+ax1.set_title("Graph Structure")
+fig.colorbar(sc, ax=ax1, label='Node Feature Sum')
+
+# 绘制热图
+im = ax2.imshow(intermediate_output.detach().numpy(), cmap='viridis', aspect='auto')
+ax2.set_title("Intermediate Representation Heatmap")
+ax2.set_xlabel('Feature Dimension')
+ax2.set_ylabel('Node Index')
+fig.colorbar(im, ax=ax2, label='Feature Value')
+
 plt.show()
+
 
 
 """
@@ -158,7 +181,6 @@ G.add_edges_from(edges)
 num_nodes = len(G.nodes)
 node_features = torch.randn(num_nodes, 16)
 
-
 # 创建一个简单的GNN模型
 class SimpleGNN(torch.nn.Module):
     def __init__(self):
@@ -171,24 +193,27 @@ class SimpleGNN(torch.nn.Module):
         x = torch.relu(self.conv2(x))
         return x
 
-
 gnn_model = SimpleGNN()
 
 # 获取中间表示
 intermediate_output = gnn_model(node_features, edges)
 
 # 可视化中间表示
-plt.figure(figsize=(8, 6))
+# plt.figure(figsize=(8, 6))
+fig, ax = plt.subplots(figsize=(8, 6))
 pos = nx.spring_layout(G)
 node_colors = intermediate_output.detach().numpy().sum(axis=1)  # 使用detach()来获得不需要梯度的张量
-nx.draw(G, pos, with_labels=True, node_color=node_colors, cmap='viridis', node_size=1000)
-plt.title("Intermediate Representation")
+# nx.draw(G, pos, with_labels=True, node_color=node_colors, cmap='viridis', node_size=1000)
+nx.draw(G, pos, with_labels=True, node_color=node_colors, cmap='viridis', node_size=1000, ax=ax)
+plt.title("Intermediate Representation via NetworkX")
 
 # 创建ScalarMappable对象
 sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=node_colors.min(), vmax=node_colors.max()))
-sm._A = []  # 这里必须设置_A为一个空列表，以便创建颜色条
+# sm._A = []  # 这里必须设置_A为一个空列表，以便创建颜色条
+sm.set_array([])  # 设置为一个空数组
 
 # 添加颜色条
-cbar = plt.colorbar(sm)
+# cbar = plt.colorbar(sm)
+cbar = plt.colorbar(sm, ax=ax)
 
 plt.show()
