@@ -102,3 +102,8 @@
 # if self.norm is not None:
 #     rst = self.norm(rst)
 # return rst
+
+import metis
+
+# /opt/homebrew/opt/metis
+# export METIS_DLL=/opt/homebrew/opt/metis/lib/libmetis.dylib
