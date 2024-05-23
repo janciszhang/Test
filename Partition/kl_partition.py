@@ -11,7 +11,7 @@ def kl_partition(graph, k):
     return kernighan_lin_bisection(graph, max_iter=k)
 
 # 测试不同分割数量K的运行速度和模型准确性
-K_values = [2, 3, 4, 5]  # 不同的K值
+K_values = [k for k in range(1,10)]  # 不同的分割数量K
 execution_times = []
 accuracies = []
 
